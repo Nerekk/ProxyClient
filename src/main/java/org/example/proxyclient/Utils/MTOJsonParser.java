@@ -52,11 +52,11 @@ public class MTOJsonParser {
         if (payload.getTimestampOfMessage() == null) {
             throw new IllegalArgumentException("Timestamp of message is null");
         }
-        if (payload.getTopicOfMessage() == null || payload.getTopicOfMessage().isEmpty()) {
-            throw new IllegalArgumentException("Topic of message is null or empty");
+        if (payload.getTopicOfMessage() == null) {
+            throw new IllegalArgumentException("Topic of message is null");
         }
-        if (payload.getMessage() == null || payload.getMessage().isEmpty()) {
-            throw new IllegalArgumentException("Message is null or empty");
+        if (payload.getMessage() == null) {
+            throw new IllegalArgumentException("Message is null");
         }
     }
 }
