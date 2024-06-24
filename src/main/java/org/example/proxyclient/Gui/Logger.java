@@ -53,7 +53,7 @@ public class Logger {
     public void logServer(String message) {
         LocalDateTime currentTime = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String currentTimeString = "[" + currentTime.format(formatter) + "]";
+        String currentTimeString = "[" + currentTime.format(formatter) + "]\n";
         String currentDebug = server.getText();
 
         String info;
