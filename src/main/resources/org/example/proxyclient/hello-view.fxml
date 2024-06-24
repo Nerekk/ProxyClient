@@ -9,28 +9,27 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="518.0" prefWidth="1142.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proxyclient.FXController">
    <children>
       <TextArea fx:id="jsonPreview" editable="false" layoutX="29.0" layoutY="99.0" prefHeight="396.0" prefWidth="186.0" />
       <Label layoutX="75.0" layoutY="75.0" text="Sent json preview" />
       <Button fx:id="connectButton" layoutX="29.0" layoutY="34.0" mnemonicParsing="false" onAction="#startConnection" text="Connect" />
       <Button fx:id="disconnectButton" disable="true" layoutX="107.0" layoutY="34.0" mnemonicParsing="false" onAction="#stopConnection" text="Disconnect" />
-      <Button fx:id="myStatusButton" disable="true" layoutX="834.0" layoutY="441.0" mnemonicParsing="false" text="My status" />
-      <Button fx:id="serverStatusButton" disable="true" layoutX="911.0" layoutY="441.0" mnemonicParsing="false" text="Server status" />
-      <Button fx:id="serverLogsButton" disable="true" layoutX="1008.0" layoutY="441.0" mnemonicParsing="false" text="Server logs" />
+      <Button fx:id="myStatusButton" disable="true" layoutX="831.0" layoutY="470.0" mnemonicParsing="false" text="My status" />
+      <Button fx:id="serverStatusButton" disable="true" layoutX="908.0" layoutY="470.0" mnemonicParsing="false" onAction="#serverStatus" text="Server status" />
+      <Button fx:id="serverLogsButton" disable="true" layoutX="1005.0" layoutY="470.0" mnemonicParsing="false" text="Server logs" />
       <TextField fx:id="idField" layoutX="444.0" layoutY="34.0" text="User" />
-      <TextField fx:id="topicField" disable="true" layoutX="881.0" layoutY="308.0" />
+      <TextField fx:id="topicField" disable="true" layoutX="881.0" layoutY="285.0" />
       <TextField fx:id="ipField" layoutX="201.0" layoutY="34.0" text="localhost" />
       <TextField fx:id="portField" layoutX="366.0" layoutY="34.0" prefHeight="25.0" prefWidth="60.0" text="1234" />
-      <TextArea fx:id="logsArea" editable="false" layoutX="233.0" layoutY="99.0" prefHeight="396.0" prefWidth="218.0" />
+      <TextArea fx:id="logsArea" editable="false" layoutX="233.0" layoutY="99.0" prefHeight="396.0" prefWidth="218.0" wrapText="true" />
       <TextArea fx:id="serverArea" editable="false" layoutX="465.0" layoutY="99.0" prefHeight="396.0" prefWidth="296.0" />
       <Label layoutX="328.0" layoutY="75.0" text="Logs" />
       <Label layoutX="579.0" layoutY="75.0" text="From server" />
-      <Label layoutX="813.0" layoutY="312.0" text="Topic" />
-      <TextField fx:id="messageField" disable="true" layoutX="881.0" layoutY="342.0" />
-      <Label layoutX="813.0" layoutY="346.0" text="Message" />
-      <Button fx:id="sendButton" disable="true" layoutX="912.0" layoutY="389.0" mnemonicParsing="false" onAction="#send" text="Send to sever" />
+      <Label layoutX="813.0" layoutY="289.0" text="Topic" />
+      <TextField fx:id="messageField" disable="true" layoutX="881.0" layoutY="378.0" />
+      <Label layoutX="804.0" layoutY="382.0" text="Message" />
+      <Button fx:id="sendButton" disable="true" layoutX="909.0" layoutY="418.0" mnemonicParsing="false" onAction="#send" text="Send to sever" />
       <Label layoutX="252.0" layoutY="14.0" text="Server Ip" />
       <Label layoutX="385.0" layoutY="14.0" text="Port" />
       <Label layoutX="500.0" layoutY="14.0" text="Your id" />
@@ -39,24 +38,26 @@
             <Font name="System Bold" size="23.0" />
          </font>
       </Label>
-      <ToggleButton fx:id="createToggle" disable="true" layoutX="831.0" layoutY="197.0" text="Create topic">
+      <ToggleButton fx:id="createToggle" disable="true" layoutX="831.0" layoutY="195.0" text="Create topic">
          <toggleGroup>
             <ToggleGroup fx:id="producerGroup" />
          </toggleGroup>
       </ToggleButton>
-      <ToggleButton fx:id="deleteToggle" disable="true" layoutX="912.0" layoutY="197.0" mnemonicParsing="false" text="Delete topic" toggleGroup="$producerGroup" />
-      <ToggleButton fx:id="postToggle" disable="true" layoutX="991.0" layoutY="197.0" selected="true" text="Post message" toggleGroup="$producerGroup" />
-      <ToggleButton fx:id="subscribeToggle" disable="true" layoutX="879.0" layoutY="247.0" text="Subscribe">
+      <ToggleButton fx:id="deleteToggle" disable="true" layoutX="912.0" layoutY="195.0" mnemonicParsing="false" text="Delete topic" toggleGroup="$producerGroup" />
+      <ToggleButton fx:id="postToggle" disable="true" layoutX="991.0" layoutY="195.0" selected="true" text="Post message" toggleGroup="$producerGroup" />
+      <ToggleButton fx:id="subscribeToggle" disable="true" layoutX="879.0" layoutY="234.0" text="Subscribe">
          <toggleGroup>
             <ToggleGroup fx:id="subscriberGroup" />
          </toggleGroup>
       </ToggleButton>
-      <ToggleButton fx:id="unsubscribeToggle" disable="true" layoutX="945.0" layoutY="247.0" selected="true" text="Unsubscribe" toggleGroup="$subscriberGroup" />
+      <ToggleButton fx:id="unsubscribeToggle" disable="true" layoutX="945.0" layoutY="234.0" selected="true" text="Unsubscribe" toggleGroup="$subscriberGroup" />
       <ToggleButton fx:id="producerToggle" disable="true" layoutX="889.0" layoutY="151.0" text="Producer">
          <toggleGroup>
             <ToggleGroup fx:id="modeGroup" />
          </toggleGroup>
       </ToggleButton>
       <ToggleButton fx:id="subscriberToggle" disable="true" layoutX="951.0" layoutY="151.0" selected="true" text="Subscriber" toggleGroup="$modeGroup" />
+      <TextField fx:id="messageTopicField" disable="true" layoutX="881.0" layoutY="343.0" />
+      <Label layoutX="781.0" layoutY="347.0" text="Topic of message" />
    </children>
 </AnchorPane>
