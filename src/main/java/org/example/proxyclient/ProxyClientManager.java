@@ -1,5 +1,6 @@
 package org.example.proxyclient;
 
+import javafx.application.Platform;
 import org.example.proxyclient.Enums.MessageMode;
 import org.example.proxyclient.Enums.MessageType;
 import org.example.proxyclient.Gui.Logger;
@@ -11,6 +12,7 @@ import org.example.proxyclient.Utils.MTOJsonParser;
 import javax.security.auth.callback.Callback;
 import java.io.*;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ProxyClientManager {
     private final FXController c;
@@ -20,6 +22,7 @@ public class ProxyClientManager {
     private DataInputStream in;
 
     private Thread listenerThread;
+    private volatile AtomicBoolean running = new AtomicBoolean(false);
 
     public ProxyClientManager(FXController c) {
         this.c = c;
@@ -33,33 +36,68 @@ public class ProxyClientManager {
         in = new DataInputStream(client.getInputStream());
         client.setUserId(userId);
 
+        if (!handshake()) {
+            throw new IOException("Could not connect");
+        }
+
         c.getLogger().log(Logger.INFO, "Connected!");
 
         listenerThread = new Thread(this::listenForMessages);
+        running.set(true);
         listenerThread.start();
     }
 
+    private boolean handshake() {
+        MessageTransferObject mto = new MessageTransferObject(MessageType.status, client.getUserId(), "Handshake", MessageMode.producer);
+        mto.setPayload(new Payload());
+
+        String toSend = MTOJsonParser.parseToString(mto);
+        Platform.runLater(() -> Logger.getInstance().previewJson(toSend));
+
+        try {
+            out.writeUTF(toSend);
+            out.flush();
+
+            String json = in.readUTF();
+            MessageTransferObject hs = MTOJsonParser.parseJsonToMessageTransferObject(json);
+
+            Platform.runLater(() -> Logger.getInstance().log(Logger.INFO, hs.getPayload().getMessage()));
+
+            return hs.getType() == MessageType.acknowledge;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void listenForMessages() {
-        while (isConnected()) {
+        while (running.get() && isConnected()) {
             try {
-                c.getLogger().log(Logger.INFO, "Waiting for server response..");
+                Platform.runLater( () ->c.getLogger().log(Logger.INFO, "Waiting for server response.."));
+
                 String message = in.readUTF();
-                c.getLogger().log(Logger.INFO, "Got server message!");
+                Platform.runLater( () ->c.getLogger().log(Logger.INFO, "Got server message!"));
 
-//                MessageTransferObject mto = MTOJsonParser.parseJsonToMessageTransferObject(message);
+                Platform.runLater(() -> c.getLogger().logServer(message));
 
-                c.getLogger().logServer(message);
-            } catch (IOException e) {
-                e.printStackTrace();
-                try {
-                    client.getClientSocket().close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
+
+                if (isDisconnectCall(message)) {
+                    c.swapGuiStatus();
+                    closeClient();
                     break;
+                }
+
+            } catch (IOException e) {
+                if (running.get()) {
+                    e.printStackTrace();
                 }
                 break;
             }
         }
+    }
+
+    private boolean isDisconnectCall(String message) {
+        MessageTransferObject mto = MTOJsonParser.parseJsonToMessageTransferObject(message);
+        return mto.getType() == MessageType.status && mto.getPayload().getTopicOfMessage().equals("Disconnect");
     }
 
     public void send() {
@@ -204,13 +242,25 @@ public class ProxyClientManager {
     }
 
     public void stop() {
-        listenerThread.interrupt();
+        MessageTransferObject mto = new MessageTransferObject(MessageType.status, client.getUserId(), "Handshake", MessageMode.producer);
+        mto.setPayload(new Payload("Disconnect", true, "Dc"));
+        String json = MTOJsonParser.parseToString(mto);
+
         try {
-            in.close();
-            out.close();
-            client.getClientSocket().close();
+            out.writeUTF(json);
+
+//            listenerThread.join();
+            closeClient();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void closeClient() throws IOException {
+        running.set(false);
+
+        in.close();
+        out.close();
+        client.getClientSocket().close();
     }
 }

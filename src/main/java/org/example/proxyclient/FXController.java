@@ -89,7 +89,7 @@ public class FXController implements Initializable {
         clientManager.getServerStatus();
     }
 
-    private void swapGuiStatus() {
+    public void swapGuiStatus() {
         setDisables(connectButton.isDisabled());
     }
 
