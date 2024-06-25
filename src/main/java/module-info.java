@@ -3,6 +3,7 @@ module org.example.proxyclient {
     requires javafx.fxml;
     requires static lombok;
     requires com.google.gson;
+    requires org.json;
 
 
     opens org.example.proxyclient to javafx.fxml;

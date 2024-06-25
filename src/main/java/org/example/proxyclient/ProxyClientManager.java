@@ -8,6 +8,7 @@ import org.example.proxyclient.Gui.SelectedTypeMode;
 import org.example.proxyclient.Transfer.MessageTransferObject;
 import org.example.proxyclient.Transfer.Payload;
 import org.example.proxyclient.Utils.MTOJsonParser;
+import org.json.JSONObject;
 
 import javax.security.auth.callback.Callback;
 import java.io.*;
@@ -15,6 +16,7 @@ import java.net.Socket;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ProxyClientManager {
+
     private final FXController c;
 
     private Client client;
@@ -23,6 +25,8 @@ public class ProxyClientManager {
 
     private Thread listenerThread;
     private volatile AtomicBoolean running = new AtomicBoolean(false);
+
+    private ProxyConfig config;
 
     public ProxyClientManager(FXController c) {
         this.c = c;
@@ -42,9 +46,10 @@ public class ProxyClientManager {
 
         c.getLogger().log(Logger.INFO, "Connected!");
 
-        listenerThread = new Thread(this::listenForMessages);
         running.set(true);
+        listenerThread = new Thread(this::listenForMessages);
         listenerThread.start();
+        getConfig();
     }
 
     private boolean handshake() {
@@ -86,13 +91,20 @@ public class ProxyClientManager {
                     break;
                 }
 
-            } catch (IOException e) {
-                if (running.get()) {
-                    e.printStackTrace();
+                if (isConfigCall(message)) {
+                    setConfig(message);
                 }
+
+            } catch (IOException e) {
+                criticalStop();
                 break;
             }
         }
+    }
+
+    private boolean isConfigCall(String message) {
+        MessageTransferObject mto = MTOJsonParser.parseJsonToMessageTransferObject(message);
+        return mto.getType() == MessageType.config;
     }
 
     private boolean isDisconnectCall(String message) {
@@ -141,7 +153,6 @@ public class ProxyClientManager {
         writeToServer(mto);
     }
 
-    //callback
     public void getServerStatus() {
         MessageTransferObject mto = new MessageTransferObject(MessageType.status, client.getUserId(), "logs", MessageMode.producer);
         mto.setPayload(new Payload(mto.getTimestamp(), "Server status", true, "status"));
@@ -149,13 +160,21 @@ public class ProxyClientManager {
         writeToServer(mto);
     }
 
+    private void getConfig() {
+        MessageTransferObject mto = new MessageTransferObject(MessageType.config, client.getUserId(), "logs", MessageMode.producer);
+        mto.setPayload(new Payload(mto.getTimestamp(), "Config", true, "give me config"));
 
-//
-//    //callback
-//    private Object getServerLogs() {
-//
-//    }
-//
+        writeForConfig(mto);
+    }
+
+    private void setConfig(String message) {
+        MessageTransferObject mto = MTOJsonParser.parseJsonToMessageTransferObject(message);
+        String json = mto.getPayload().getMessage();
+
+        JSONObject con = new JSONObject(json);
+        config = new ProxyConfig(con);
+    }
+
     public void createProducer(String topicName) {
         MessageTransferObject mto = new MessageTransferObject(MessageType.register, client.getUserId(), topicName, MessageMode.producer);
         mto.setPayload(new Payload());
@@ -173,15 +192,14 @@ public class ProxyClientManager {
 
         writeToServer(mto);
     }
-//
+
     public void withdrawProducer(String topicName) {
         MessageTransferObject mto = new MessageTransferObject(MessageType.withdraw, client.getUserId(), topicName, MessageMode.producer);
         mto.setPayload(new Payload());
 
         writeToServer(mto);
     }
-//
-//    //callback
+
     public void createSubscriber(String topicName) {
         MessageTransferObject mto = new MessageTransferObject(MessageType.register, client.getUserId(), topicName, MessageMode.subscriber);
         mto.setPayload(new Payload());
@@ -196,7 +214,7 @@ public class ProxyClientManager {
         writeToServer(mto);
     }
 
-    private void writeToServer(MessageTransferObject mto) {
+    private void writeForConfig(MessageTransferObject mto) {
         String toSend = MTOJsonParser.parseToString(mto);
         Logger.getInstance().previewJson(toSend);
 
@@ -206,6 +224,34 @@ public class ProxyClientManager {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    private void writeToServer(MessageTransferObject mto) {
+        if (config == null) {
+            Platform.runLater(() -> Logger.getInstance().log(Logger.ERROR, "Config is null"));
+            return;
+        }
+        // sprawdzenie wielkosci wiadomosci
+
+        String toSend = MTOJsonParser.parseToString(mto);
+        Logger.getInstance().previewJson(toSend);
+
+        if (isMessageTooBig(toSend)) {
+            Platform.runLater(() -> Logger.getInstance().log(Logger.ERROR, "The message you want to send is bigger than server size limit!"));
+            return;
+        }
+
+        try {
+            out.writeUTF(toSend);
+            out.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean isMessageTooBig(String message) {
+        return message.getBytes().length > config.getSizeLimit();
     }
 
     public void stop() {
@@ -219,8 +265,18 @@ public class ProxyClientManager {
 //            listenerThread.join();
             closeClient();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            Platform.runLater(() -> Logger.getInstance().log(Logger.ERROR, "Stopping problem"));
         }
+        Platform.runLater(() -> Logger.getInstance().log(Logger.ERROR, "Client stopped."));
+    }
+
+    private void criticalStop() {
+        try {
+            closeClient();
+        } catch (IOException e) {
+            Platform.runLater(() -> Logger.getInstance().log(Logger.ERROR, "Critical stopping problem"));
+        }
+        Platform.runLater(() -> Logger.getInstance().log(Logger.ERROR, "Critical stopped client."));
     }
 
     private void closeClient() throws IOException {
