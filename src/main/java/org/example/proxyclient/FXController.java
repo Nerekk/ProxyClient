@@ -85,6 +85,11 @@ public class FXController implements Initializable {
     }
 
     @FXML
+    protected void myStatus() {
+        clientManager.getStatus();
+    }
+
+    @FXML
     protected void serverStatus() {
         clientManager.getServerStatus();
     }
@@ -100,6 +105,7 @@ public class FXController implements Initializable {
         portField.setDisable(!bool);
         idField.setDisable(!bool);
         topicField.setDisable(bool);
+        messageTopicField.setDisable(bool);
         messageField.setDisable(bool);
 
         modeGroup.getToggles().forEach(toggle -> {

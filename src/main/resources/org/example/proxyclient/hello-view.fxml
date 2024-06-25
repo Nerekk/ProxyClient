@@ -15,7 +15,7 @@
       <Label layoutX="75.0" layoutY="75.0" text="Sent json preview" />
       <Button fx:id="connectButton" layoutX="29.0" layoutY="34.0" mnemonicParsing="false" onAction="#startConnection" text="Connect" />
       <Button fx:id="disconnectButton" disable="true" layoutX="107.0" layoutY="34.0" mnemonicParsing="false" onAction="#stopConnection" text="Disconnect" />
-      <Button fx:id="myStatusButton" disable="true" layoutX="831.0" layoutY="470.0" mnemonicParsing="false" text="My status" />
+      <Button fx:id="myStatusButton" disable="true" layoutX="831.0" layoutY="470.0" mnemonicParsing="false" onAction="#myStatus" text="My status" />
       <Button fx:id="serverStatusButton" disable="true" layoutX="908.0" layoutY="470.0" mnemonicParsing="false" onAction="#serverStatus" text="Server status" />
       <Button fx:id="serverLogsButton" disable="true" layoutX="1005.0" layoutY="470.0" mnemonicParsing="false" text="Server logs" />
       <TextField fx:id="idField" layoutX="444.0" layoutY="34.0" text="User" />

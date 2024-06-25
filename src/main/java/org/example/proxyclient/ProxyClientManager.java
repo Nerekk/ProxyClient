@@ -134,24 +134,19 @@ public class ProxyClientManager {
         return client.getClientSocket().isConnected();
     }
 
-    private void getStatus() {
+    public void getStatus() {
+        MessageTransferObject mto = new MessageTransferObject(MessageType.status, client.getUserId(), "logs", MessageMode.producer);
+        mto.setPayload(new Payload(mto.getTimestamp(), "My status", true, "status"));
 
+        writeToServer(mto);
     }
 
     //callback
     public void getServerStatus() {
         MessageTransferObject mto = new MessageTransferObject(MessageType.status, client.getUserId(), "logs", MessageMode.producer);
-        mto.setPayload(new Payload());
+        mto.setPayload(new Payload(mto.getTimestamp(), "Server status", true, "status"));
 
-        String toSend = MTOJsonParser.parseToString(mto);
-        Logger.getInstance().previewJson(toSend);
-
-        try {
-            out.writeUTF(toSend);
-            out.flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        writeToServer(mto);
     }
 
 
@@ -165,15 +160,7 @@ public class ProxyClientManager {
         MessageTransferObject mto = new MessageTransferObject(MessageType.register, client.getUserId(), topicName, MessageMode.producer);
         mto.setPayload(new Payload());
 
-        String toSend = MTOJsonParser.parseToString(mto);
-        Logger.getInstance().previewJson(toSend);
-
-        try {
-            out.writeUTF(toSend);
-            out.flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        writeToServer(mto);
     }
 //
 //    public void sendFile(String topicName, String filePath) {
@@ -184,30 +171,14 @@ public class ProxyClientManager {
         MessageTransferObject mto = new MessageTransferObject(MessageType.message, client.getUserId(), topicName, MessageMode.producer);
         mto.setPayload(payload);
 
-        String toSend = MTOJsonParser.parseToString(mto);
-        Logger.getInstance().previewJson(toSend);
-
-        try {
-            out.writeUTF(toSend);
-            out.flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        writeToServer(mto);
     }
 //
     public void withdrawProducer(String topicName) {
         MessageTransferObject mto = new MessageTransferObject(MessageType.withdraw, client.getUserId(), topicName, MessageMode.producer);
         mto.setPayload(new Payload());
 
-        String toSend = MTOJsonParser.parseToString(mto);
-        Logger.getInstance().previewJson(toSend);
-
-        try {
-            out.writeUTF(toSend);
-            out.flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        writeToServer(mto);
     }
 //
 //    //callback
@@ -215,21 +186,17 @@ public class ProxyClientManager {
         MessageTransferObject mto = new MessageTransferObject(MessageType.register, client.getUserId(), topicName, MessageMode.subscriber);
         mto.setPayload(new Payload());
 
-        String toSend = MTOJsonParser.parseToString(mto);
-        Logger.getInstance().previewJson(toSend);
-
-        try {
-            out.writeUTF(toSend);
-            out.flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        writeToServer(mto);
     }
 
     public void withdrawSubscriber(String topicName) {
         MessageTransferObject mto = new MessageTransferObject(MessageType.withdraw, client.getUserId(), topicName, MessageMode.subscriber);
         mto.setPayload(new Payload());
 
+        writeToServer(mto);
+    }
+
+    private void writeToServer(MessageTransferObject mto) {
         String toSend = MTOJsonParser.parseToString(mto);
         Logger.getInstance().previewJson(toSend);
 
