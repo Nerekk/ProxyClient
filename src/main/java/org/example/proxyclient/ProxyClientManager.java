@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import javax.security.auth.callback.Callback;
 import java.io.*;
 import java.net.Socket;
+import java.util.Base64;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ProxyClientManager {
@@ -80,8 +81,6 @@ public class ProxyClientManager {
     public void listenForMessages() {
         while (running.get() && isConnected()) {
             try {
-                Platform.runLater( () ->c.getLogger().log(Logger.INFO, "Waiting for server response.."));
-
                 String message = in.readUTF();
                 Platform.runLater( () ->c.getLogger().log(Logger.INFO, "Got server message!"));
 
@@ -98,6 +97,10 @@ public class ProxyClientManager {
                     setConfig(message);
                 }
 
+                if (isFileCall(message)) {
+                    saveFile(message);
+                }
+
             } catch (IOException e) {
                 criticalStop();
                 break;
@@ -108,6 +111,11 @@ public class ProxyClientManager {
     private boolean isConfigCall(String message) {
         MessageTransferObject mto = MTOJsonParser.parseJsonToMessageTransferObject(message);
         return mto.getType() == MessageType.config;
+    }
+
+    private boolean isFileCall(String message) {
+        MessageTransferObject mto = MTOJsonParser.parseJsonToMessageTransferObject(message);
+        return mto.getType() == MessageType.file;
     }
 
     private boolean isDisconnectCall(String message) {
@@ -139,9 +147,11 @@ public class ProxyClientManager {
             createProducer(c.getTopicField().getText());
         } else if (selectedType == MessageType.withdraw) {
             withdrawProducer(c.getTopicField().getText());
-        } else {
+        } else if (selectedType == MessageType.message) {
             Payload p = new Payload(c.getMessageTopicField().getText(), true, c.getMessageField().getText());
             produce(c.getTopicField().getText(), p);
+        } else {
+            sendFile(c.getTopicField().getText(), c.getFileField().getText());
         }
     }
 
@@ -184,11 +194,75 @@ public class ProxyClientManager {
 
         writeToServer(mto);
     }
-//
-//    public void sendFile(String topicName, String filePath) {
-//
-//    }
-//
+
+    public void sendFile(String topicName, String filePath) {
+        File file = new File(filePath);
+        byte[] fileBytes = new byte[(int) file.length()];
+
+        try (FileInputStream fis = new FileInputStream(file)) {
+            fis.read(fileBytes);
+        } catch (FileNotFoundException e) {
+            Logger.getInstance().log(Logger.ERROR, "File not found!");
+            return;
+        } catch (IOException e) {
+            Logger.getInstance().log(Logger.ERROR, "Invalid file!");
+            return;
+        }
+
+        String fileName = file.getName();
+        String base64File = Base64.getEncoder().encodeToString(fileBytes);
+
+
+        MessageTransferObject mto = new MessageTransferObject(MessageType.file, client.getUserId(), topicName, MessageMode.producer);
+        Payload p = new Payload(mto.getTimestamp(), fileName, true, base64File);
+        mto.setPayload(p);
+
+        writeToServer(mto);
+    }
+
+    private void saveFile(String message) {
+        MessageTransferObject mto = MTOJsonParser.parseJsonToMessageTransferObject(message);
+
+        String fileName = mto.getPayload().getTopicOfMessage();
+        String base64File = mto.getPayload().getMessage();
+
+        byte[] fileBytes = Base64.getDecoder().decode(base64File);
+
+        File file = getUniqueFilename(fileName);
+
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            fos.write(fileBytes);
+            Logger.getInstance().log(Logger.INFO, "File saved path: \n" + file.getAbsolutePath());
+        } catch (FileNotFoundException e) {
+            Logger.getInstance().log(Logger.ERROR, "File not found!");
+        } catch (IOException e) {
+            Logger.getInstance().log(Logger.ERROR, "Invalid file!");
+        }
+    }
+
+    private static File getUniqueFilename(String fileName) {
+        File file = new File("received_" + fileName);
+        String baseName = fileName;
+        String extension = "";
+
+        int dotIndex = fileName.lastIndexOf('.');
+        if (dotIndex > 0) {
+            baseName = fileName.substring(0, dotIndex);
+            extension = fileName.substring(dotIndex);
+        }
+
+        String uniqueFileName = "received_" + baseName;
+        file = new File(uniqueFileName + extension);
+        int counter = 1;
+        while (file.exists()) {
+            uniqueFileName = "received_" + baseName + "_" + counter;
+            file = new File(uniqueFileName + extension);
+            counter++;
+        }
+        return file;
+    }
+
+
     public void produce(String topicName, Payload payload) {
         MessageTransferObject mto = new MessageTransferObject(MessageType.message, client.getUserId(), topicName, MessageMode.producer);
         mto.setPayload(payload);
