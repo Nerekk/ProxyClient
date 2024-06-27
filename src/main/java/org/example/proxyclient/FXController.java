@@ -15,12 +15,14 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.ResourceBundle;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Getter
 public class FXController implements Initializable {
 
     @FXML
-    private ToggleButton producerToggle, subscriberToggle, createToggle, deleteToggle, postToggle, subscribeToggle, unsubscribeToggle;
+    private ToggleButton producerToggle, subscriberToggle, createToggle, deleteToggle, postToggle, subscribeToggle, unsubscribeToggle, fileToggle;
 
     @FXML
     private ToggleGroup modeGroup, producerGroup, subscriberGroup;
@@ -29,7 +31,7 @@ public class FXController implements Initializable {
     private Button connectButton, disconnectButton, myStatusButton, serverStatusButton, sendButton;
 
     @FXML
-    private TextField idField, ipField, portField, topicField, messageField, messageTopicField;
+    private TextField idField, ipField, portField, topicField, messageField, messageTopicField, fileField;
 
     @FXML
     private TextArea logsArea, serverArea, jsonPreview;
@@ -54,22 +56,28 @@ public class FXController implements Initializable {
 
     @FXML
     protected void startConnection() {
+        String ip = getIp();
+        if (ip == null) {
+            logger.log(Logger.ERROR, "Given ip is in wrong format!");
+            return;
+        }
+        Integer port = getPort();
+        if (port == -1) {
+            logger.log(Logger.ERROR, "Given port is not a number!");
+            return;
+        }
+        if (idField.getText().isEmpty()) {
+            logger.log(Logger.ERROR, "Username cannot be empty!");
+            return;
+        }
+
         try {
-            clientManager.start(ipField.getText(), Integer.parseInt(portField.getText()), idField.getText());
+            clientManager.start(ip, port, idField.getText());
         } catch (IOException e) {
             logger.log(Logger.ERROR, e.getMessage());
             return;
         }
         swapGuiStatus();
-//        Payload payload = new Payload();
-//        payload.setTimestampOfMessage(LocalDateTime.now());
-//
-//        MessageTransferObject mto = new MessageTransferObject();
-//        mto.setTimestamp(LocalDateTime.now());
-//        mto.setPayload(payload);
-//
-//        String s = MTOJsonParser.parseToString(mto);
-//        logger.previewJson(s);
     }
 
     @FXML
@@ -92,6 +100,29 @@ public class FXController implements Initializable {
     @FXML
     protected void serverStatus() {
         clientManager.getServerStatus();
+    }
+
+    public String getIp () {
+        String ipPattern = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$";
+        String ip = ipField.getText();
+        Pattern pattern = Pattern.compile(ipPattern);
+        Matcher matcher = pattern.matcher(ip);
+
+        if (matcher.matches() || ip.equals("localhost")) {
+            return ip;
+        } else {
+            return null;
+        }
+    }
+
+    public Integer getPort() {
+        Integer port;
+        try {
+            port = Integer.parseInt(portField.getText());
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+        return port;
     }
 
     public void swapGuiStatus() {
