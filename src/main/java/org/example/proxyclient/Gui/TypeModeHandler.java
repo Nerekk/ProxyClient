@@ -10,14 +10,14 @@ import org.example.proxyclient.Enums.MessageType;
 @Getter
 @Setter
 public class TypeModeHandler {
-    private final ToggleButton producerToggle, subscriberToggle, createToggle, deleteToggle, postToggle, subscribeToggle, unsubscribeToggle;
+    private final ToggleButton producerToggle, subscriberToggle, createToggle, deleteToggle, postToggle, subscribeToggle, unsubscribeToggle, fileToggle;
 
     private final ToggleGroup modeGroup, producerGroup, subscriberGroup;
 
     private SelectedTypeMode typemode;
 
 
-    public TypeModeHandler(ToggleButton producerToggle, ToggleButton subscriberToggle, ToggleButton createToggle, ToggleButton deleteToggle, ToggleButton postToggle, ToggleButton subscribeToggle, ToggleButton unsubscribeToggle, ToggleGroup modeGroup, ToggleGroup producerGroup, ToggleGroup subscriberGroup) {
+    public TypeModeHandler(ToggleButton producerToggle, ToggleButton subscriberToggle, ToggleButton createToggle, ToggleButton deleteToggle, ToggleButton postToggle, ToggleButton subscribeToggle, ToggleButton unsubscribeToggle, ToggleButton fileToggle, ToggleGroup modeGroup, ToggleGroup producerGroup, ToggleGroup subscriberGroup) {
         this.producerToggle = producerToggle;
         this.subscriberToggle = subscriberToggle;
         this.createToggle = createToggle;
@@ -28,6 +28,7 @@ public class TypeModeHandler {
         this.modeGroup = modeGroup;
         this.producerGroup = producerGroup;
         this.subscriberGroup = subscriberGroup;
+        this.fileToggle = fileToggle;
 
         this.typemode = new SelectedTypeMode();
 
@@ -56,8 +57,10 @@ public class TypeModeHandler {
             typemode.setSelectedType(MessageType.register);
         } else if (deleteToggle.isSelected()) {
             typemode.setSelectedType(MessageType.withdraw);
-        } else {
+        } else if (postToggle.isSelected()) {
             typemode.setSelectedType(MessageType.message);
+        } else {
+            typemode.setSelectedType(MessageType.file);
         }
     }
 

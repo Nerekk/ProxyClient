@@ -49,7 +49,7 @@ public class FXController implements Initializable {
 
         typeModeHandler = new TypeModeHandler(
                 producerToggle, subscriberToggle, createToggle, deleteToggle, postToggle,
-                subscribeToggle, unsubscribeToggle, modeGroup, producerGroup, subscriberGroup);
+                subscribeToggle, unsubscribeToggle, fileToggle, modeGroup, producerGroup, subscriberGroup);
 
         clientManager = new ProxyClientManager(this);
     }
@@ -138,6 +138,7 @@ public class FXController implements Initializable {
         topicField.setDisable(bool);
         messageTopicField.setDisable(bool);
         messageField.setDisable(bool);
+        fileField.setDisable(bool);
 
         modeGroup.getToggles().forEach(toggle -> {
             Node n = (Node) toggle;

@@ -60,6 +60,6 @@
       <Label layoutX="781.0" layoutY="321.0" text="Topic of message" />
       <TextField fx:id="fileField" disable="true" layoutX="881.0" layoutY="393.0" />
       <Label layoutX="791.0" layoutY="397.0" text="Filename.type" />
-      <ToggleButton fx:id="postToggle1" disable="true" layoutX="1047.0" layoutY="195.0" text="Send file" toggleGroup="$producerGroup" />
+      <ToggleButton fx:id="fileToggle" disable="true" layoutX="1047.0" layoutY="195.0" text="Send file" toggleGroup="$producerGroup" />
    </children>
 </AnchorPane>
