@@ -26,7 +26,7 @@ public class FXController implements Initializable {
     private ToggleGroup modeGroup, producerGroup, subscriberGroup;
 
     @FXML
-    private Button connectButton, disconnectButton, myStatusButton, serverStatusButton, serverLogsButton, sendButton;
+    private Button connectButton, disconnectButton, myStatusButton, serverStatusButton, sendButton;
 
     @FXML
     private TextField idField, ipField, portField, topicField, messageField, messageTopicField;
@@ -126,6 +126,5 @@ public class FXController implements Initializable {
         sendButton.setDisable(bool);
         myStatusButton.setDisable(bool);
         serverStatusButton.setDisable(bool);
-        serverLogsButton.setDisable(bool);
     }
 }

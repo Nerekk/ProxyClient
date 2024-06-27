@@ -51,16 +51,13 @@ public class Logger {
     }
 
     public void logServer(String message) {
-        LocalDateTime currentTime = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String currentTimeString = "[" + currentTime.format(formatter) + "]\n";
         String currentDebug = server.getText();
 
         String info;
         if (currentDebug.isEmpty()) {
-            info = currentTimeString + message;
+            info = message + "\n";
         } else {
-            info = "\n" + currentTimeString + message;
+            info = "\n" + message + "\n";
         }
 
         server.appendText(info);

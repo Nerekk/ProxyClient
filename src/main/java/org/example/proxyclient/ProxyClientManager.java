@@ -5,6 +5,7 @@ import org.example.proxyclient.Enums.MessageMode;
 import org.example.proxyclient.Enums.MessageType;
 import org.example.proxyclient.Gui.Logger;
 import org.example.proxyclient.Gui.SelectedTypeMode;
+import org.example.proxyclient.Gui.ServerPrinter;
 import org.example.proxyclient.Transfer.MessageTransferObject;
 import org.example.proxyclient.Transfer.Payload;
 import org.example.proxyclient.Utils.MTOJsonParser;
@@ -64,9 +65,11 @@ public class ProxyClientManager {
             out.flush();
 
             String json = in.readUTF();
+            Platform.runLater(() -> ServerPrinter.printInfo(json));
+
             MessageTransferObject hs = MTOJsonParser.parseJsonToMessageTransferObject(json);
 
-            Platform.runLater(() -> Logger.getInstance().log(Logger.INFO, hs.getPayload().getMessage()));
+//            Platform.runLater(() -> Logger.getInstance().log(Logger.INFO, hs.getPayload().getMessage()));
 
             return hs.getType() == MessageType.acknowledge;
         } catch (IOException e) {
@@ -82,7 +85,7 @@ public class ProxyClientManager {
                 String message = in.readUTF();
                 Platform.runLater( () ->c.getLogger().log(Logger.INFO, "Got server message!"));
 
-                Platform.runLater(() -> c.getLogger().logServer(message));
+                Platform.runLater(() -> ServerPrinter.printInfo(message));
 
 
                 if (isDisconnectCall(message)) {
