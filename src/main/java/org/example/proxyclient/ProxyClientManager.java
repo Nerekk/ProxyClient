@@ -11,7 +11,6 @@ import org.example.proxyclient.Transfer.Payload;
 import org.example.proxyclient.Utils.MTOJsonParser;
 import org.json.JSONObject;
 
-import javax.security.auth.callback.Callback;
 import java.io.*;
 import java.net.Socket;
 import java.util.Base64;
@@ -309,7 +308,6 @@ public class ProxyClientManager {
             Platform.runLater(() -> Logger.getInstance().log(Logger.ERROR, "Config is null"));
             return;
         }
-        // sprawdzenie wielkosci wiadomosci
 
         String toSend = MTOJsonParser.parseToString(mto);
         Logger.getInstance().previewJson(toSend);
@@ -339,21 +337,20 @@ public class ProxyClientManager {
         try {
             out.writeUTF(json);
 
-//            listenerThread.join();
             closeClient();
         } catch (IOException e) {
-            Platform.runLater(() -> Logger.getInstance().log(Logger.ERROR, "Stopping problem"));
+            Platform.runLater(() -> Logger.getInstance().log(Logger.ERROR, "Stopping exception"));
         }
-        Platform.runLater(() -> Logger.getInstance().log(Logger.ERROR, "Client stopped."));
+        Platform.runLater(() -> Logger.getInstance().log(Logger.INFO, "Client stopped."));
     }
 
     private void criticalStop() {
         try {
             closeClient();
         } catch (IOException e) {
-            Platform.runLater(() -> Logger.getInstance().log(Logger.ERROR, "Critical stopping problem"));
+            Platform.runLater(() -> Logger.getInstance().log(Logger.ERROR, "Critical stopping exception"));
         }
-        Platform.runLater(() -> Logger.getInstance().log(Logger.ERROR, "Critical stopped client."));
+        Platform.runLater(() -> Logger.getInstance().log(Logger.INFO, "Critical stopped client."));
     }
 
     private void closeClient() throws IOException {
