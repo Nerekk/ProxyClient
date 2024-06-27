@@ -1,6 +1,7 @@
 package org.example.proxyclient;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -16,6 +17,16 @@ public class MainApplication extends Application {
         stage.setScene(scene);
         stage.setResizable(false);
         stage.show();
+
+        stage.setOnCloseRequest(event -> {
+            closeApp();
+        });
+    }
+
+    private void closeApp() {
+        System.out.println("Closing app...");
+        Platform.exit();
+        System.exit(0);
     }
 
     public static void main(String[] args) {
